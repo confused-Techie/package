@@ -1,7 +1,7 @@
 {
   "name": "@confused-techie/package",
   "version": "1.0.0",
-  "description": "Abstractions & Convertions of `package.json` files.",
+  "description": "Abstractions & Conversions of `package.json` files.",
   "main": "src/package.js",
   "scripts": {
     "test": "jest"
