@@ -1,0 +1,15 @@
+{
+  "name": "@confused-techie/package",
+  "version": "1.0.0",
+  "description": "Abstractions & Convertions of `package.json` files.",
+  "main": "src/package.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "confused-Techie",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.3.1"
+  }
+}
