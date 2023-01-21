@@ -82,7 +82,7 @@ class PackageJSON {
       service: opts?.mode?.service ?? "npm", // service is the intended service for the package.json
       spec: opts?.mode?.spec ?? "npm",
       bug: opts?.mode?.bug ?? "string", // The Bug Mode used. Either Object or String is valid. Default can be used to stick with what's currently used.
-      license: opts?.mode?.license ?? "mirror", // Mirror, Object, String, Array 
+      license: opts?.mode?.license ?? "mirror", // Mirror, Object, String, Array
       rules: [],
     };
 
@@ -160,7 +160,12 @@ class PackageJSON {
         this.normalizedPack[key] = this.rawPack[key];
       }
 
-      return this.normalizedPack;
+      // Now prior to returning, lets check our package rules
+      if (this.validate("*", this.normalizedPack)) {
+        return this.normalizedPack;
+      }
+      throw new Error("Invalid Package.json");
+      return;
     }
 
 }

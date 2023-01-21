@@ -12,5 +12,11 @@ module.exports = [
     type: "problem",
     key: "name",
     path: "./rules/npm.name.startchar.js"
+  },
+  {
+    name: "npm.*.requiredkeys",
+    type: "problem",
+    key: "*",
+    path: "./rules/npm.-.requiredkeys.js"
   }
 ];
