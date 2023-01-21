@@ -68,6 +68,8 @@ const npmRuleSet = require("./ruleSets/npm.js");
 // and ease to type will have to be found.
 // Additionally, we could have the parse function check for protected values to avoid
 // accidental overriding.
+
+// If strict is set, with a specific key mode, then that mode will be forced.
 class PackageJSON {
   constructor(opts) {
     this.rawPack = opts?.pack ?? {};
@@ -80,6 +82,7 @@ class PackageJSON {
       service: opts?.mode?.service ?? "npm", // service is the intended service for the package.json
       spec: opts?.mode?.spec ?? "npm",
       bug: opts?.mode?.bug ?? "string", // The Bug Mode used. Either Object or String is valid. Default can be used to stick with what's currently used.
+      license: opts?.mode?.license ?? "mirror", // Mirror, Object, String, Array 
       rules: [],
     };
 
