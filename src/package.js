@@ -1,5 +1,17 @@
 const InvalidPropertyError = require("./errors/invalid_property_error.js");
 const description = require("./keys/description.js");
+const name = require("./keys/name.js");
+const version = require("./keys/version.js");
+const keywords = require("./keys/keywords.js");
+const homepage = require("./keys/homepage.js");
+const bugs = require("./keys/bugs.js");
+const license = require("./keys/license.js");
+const author = require("./keys/author.js");
+const contributors = require("./keys/contributors.js");
+
+// Import RuleSets
+const genericRuleSet = require("./ruleSets/generic.js");
+const npmRuleSet = require("./ruleSets/npm.js");
 
 // Resources:
 // * https://wiki.commonjs.org/wiki/Packages/1.0
@@ -62,12 +74,35 @@ class PackageJSON {
 
     this.normalizedPack = {};
     // normalizedMode will contain certain modes and settings to enforce.
+
     this.mode = {
       strict: opts?.mode?.strict ?? false, // strict Boolean will enforce strict adherance to specified service
       service: opts?.mode?.service ?? "npm", // service is the intended service for the package.json
       spec: opts?.mode?.spec ?? "npm",
       bug: opts?.mode?.bug ?? "string", // The Bug Mode used. Either Object or String is valid. Default can be used to stick with what's currently used.
+      rules: [],
     };
+
+    let localRuleSets = [];
+
+    // Now assign the ruleset
+    switch(this.mode.service) {
+      // We will look for the service in use, and assign the relevant ruleSet
+      case "npm":
+        localRuleSets.push(genericRuleSet);
+        localRuleSets.push(npmRuleSet);
+        break;
+      default:
+        break;
+    }
+
+    for (let ruleSet = 0; ruleSet < localRuleSets.length; ruleSet++) {
+      for (let rule = 0; rule < localRuleSets[ruleSet].length; rule++) {
+        // Custom ignores would occur here.
+        this.mode.rules.push(localRuleSets[ruleSet][rule]);
+      }
+    }
+
   }
 
   // Below we will define the standard Values that are supported as Getters and
@@ -78,277 +113,20 @@ class PackageJSON {
   // will only ever effect the normalizedPack. Ensuring we never overwrite
   // any part of the rawPack, in case it's needed again.
 
-  name(value) {
-    if (typeof value === "undefined") {
-      // Asking for the property.
-      if (typeof this.normalizedPack.name === "string") {
-        return this.normalizedPack.name;
-      }
-
-      if (typeof this.rawPack.name === "string") {
-        return this.name(this.rawPack.name);
-      }
-
-      // If we have reached this point then we know we can't find this value.
-      // At this point we will return `undefined`
-      return undefined;
-    }
-    // setting the property.
-    if (this.mode.strict && typeof this.mode.service !== "undefined") {
-      let valid = this.validateName(this.mode.service, value);
-
-      if (valid.overall) {
-        this.normalizedPack.name = value;
-        return;
-      }
-
-      throw new InvalidPropertyError(`Name is not valid for ${this.mode.service}: ${valid.invalid}`);
-      return;
-    }
-
-    // No Strict declared
-    this.normalizedPack.name = value;
-    return;
-  }
-
-  version(value) {
-    if (typeof value === "undefined") {
-      // Get property
-      if (typeof this.normalizedPack.version === "string") {
-        return this.normalizedPack.version;
-      }
-
-      if (typeof this.rawPack.version === "string") {
-        return this.version(this.rawPack.version);
-      }
-
-      return undefined;
-    }
-    // Set property
-    if (typeof value === "string") {
-      this.normalizedPack.version = value;
-      return;
-    }
-
-    throw new InvalidPropertyError(`Version is not a valid type: ${typeof value}`);
-    return;
-  }
-
-  descriptionOLD(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-      if (typeof this.normalizedPack.description === "string") {
-        return this.normalizedPack.description;
-      }
-
-      if (typeof this.rawPack.description === "string") {
-        return this.description(this.rawPack.description);
-      }
-
-      return undefined;
-    }
-    // Set Property
-    if (typeof value === "string") {
-      this.normalizedPack.description = value;
-      return;
-    }
-
-    throw new InvalidPropertyError(`Description is not a valid type: ${typeof value}`);
-    return;
-  }
-
-  keywords(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-      if (Array.isArray(this.normalizedPack.keywords)) {
-        return this.normalizedPack.keywords;
-      }
-
-      if (Array.isArray(this.rawPack.keywords)) {
-        return this.keywords(this.rawPack.keywords);
-      }
-
-      return undefined;
-    }
-    // Set Property
-    if (Array.isArray(value)) {
-      this.normalizedPack.keywords = value;
-      return;
-    }
-
-    throw new Error(`Keywords is not a valid type: ${typeof value}`);
-    return;
-  }
-
-  homepage(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-      if (typeof this.normalizedPack.homepage === "string") {
-        return this.normalizedPack.homepage;
-      }
-
-      if (typeof this.rawPack.homepage === "string") {
-        return this.homepage(this.rawPack.homepage);
-      }
-
-      return undefined;
-    }
-    // Set Property
-    // TODO: Check if valid URL
-    if (typeof value === "string") {
-      this.normalizedPack = value;
-      return;
-    }
-
-    throw new InvalidPropertyError(`Homepage is not a valid type: ${typeof value}`);
-    return;
-  }
-
-  bugs(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-      // this.mode.bugs can be Default, Object, or String
-      if (this.mode.bugs === "default" && typeof this.normalizedPack.bugs !== "undefined") {
-        return this.normalizedPack.bugs;
-      }
-
-      if (typeof this.normalizedPack.bugs === this.mode.bugs) {
-        return this.normalizedPack.bugs;
-      }
-
-      // Because Bugs has two modes, we will attempt to support either.
-      if (typeof this.rawPack.bugs === "string") {
-        switch(this.mode.bugs) {
-          case "object":
-            // we need to figure out if this is a URL or an email
-          case "string":
-          case "default":
-          default:
-            this.bugs = this.rawPack.bugs;
-            return this.bugs;
-        }
-      }
-
-      if (typeof this.rawPack.bugs === "object") {
-        switch(this.mode.bugs) {
-          case "string":
-            // Since when Bugs are in string mode we can only define a URL,
-            // we will throw away the email part of the object.
-            if (typeof this.rawPack.bugs.url !== "undefined") {
-              this.bugs = this.rawPack.bugs.url;
-              return this.bugs;
-            }
-            return undefined;
-          case "object":
-          case "default":
-          default:
-            if (typeof this.rawPack.bugs.url !== "undefined" && typeof this.rawPack.bugs.email !== "undefined") {
-              this.bugs = this.rawPack.bugs;
-              return this.bugs;
-            }
-            return undefined;
-        }
-      }
-
-      return undefined;
-    }
-    // Set Property
-    if (this.mode.bugs === "object" || typeof value === "object") {
-      if (typeof value.url !== "undefined" && typeof value.email !== "undefined") {
-        this.normalizedPack.bugs = value;
-        return;
-      }
-    }
-
-    if (this.mode.bugs === "string" || typeof value === "string") {
-      if (typeof value === "string") {
-        // Also ensure it is a valid URL
-        this.normalizedPack.bugs = value;
-        return;
-      }
-    }
-
-    throw new InvalidPropertyError(`Bugs value does't match ${this.mode.bugs} Bugs Mode`);
-  }
-
-  license(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-    }
-    // Set Property
-  }
-
-  author(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-    }
-    // Set Property
-  }
-
-  contributors(value) {
-    if (typeof value === "undefined") {
-      // Get Property
-    }
-    // Set Property
-  }
-
   /**
    * === VALIDATORS ===
    */
-   validateName(service, value) {
-     switch(service) {
-       case "npm": {
-         // This will ensure the package name meets the criteria of NPMJS
-         // https://docs.npmjs.com/cli/v9/configuring-npm/package-json#name
-         let name = value ?? this.name;
-         let validArray = [];
-         let invalidArray = [];
 
-         let length = {
-           status: false,
-           msg: "Length of Name"
-         };
-         let characters = {
-           status: false,
-           msg: "Allowed Characters"
-         };
-
-         if (name.length === 214 || name.length < 214) {
-           length.status = true;
-           validArray.push(length.msg);
+   validate(key, value) {
+     for (let i = 0; i < this.mode.rules.length; i++) {
+       if (this.mode.rules[i].key === key) {
+         let test = require(this.mode.rules[i].path)(value);
+         if (!test) {
+           return false;
          }
-
-         if (!name.startsWith("_") && !name.startsWith(".")) {
-           characters.status = true;
-           validArray.push(characters.msg);
-         }
-
-         // Check for uppercase & URL safe
-
-        if (!length.status) {
-          invalidArray.push(length.msg);
-        }
-
-        if (!characters.status) {
-          invalidArray.push(characters.msg);
-        }
-
-        return {
-          overall: (length.status && characters.status) ? true : false,
-          valid: validArray,
-          invalid: invalidArray
-        };
-
-       }
-       default: {
-         // Since we found no explicit matching service, we will return fine.
-         return {
-           overall: true,
-           valid: [],
-           invalid: []
-         };
        }
      }
+     return true;
    }
 
    /**
@@ -384,7 +162,15 @@ class PackageJSON {
 
 }
 
-// To assign our imported Keys functions, this must be done to the object prototype 
+// To assign our imported Keys functions, this must be done to the object prototype
+PackageJSON.prototype.name = name;
 PackageJSON.prototype.description = description;
+PackageJSON.prototype.version = version;
+PackageJSON.prototype.keywords = keywords;
+PackageJSON.prototype.homepage = homepage;
+PackageJSON.prototype.bugs = bugs;
+//PackageJSON.prototype.license = license;
+//PackageJSON.prototype.author = author;
+//PackageJSON.prototype.contributors = contributors;
 
 module.exports = PackageJSON;
