@@ -4,7 +4,8 @@
   "description": "Abstractions & Conversions of `package.json` files.",
   "main": "src/package.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "libTest": "node --test lib-test/"
   },
   "keywords": [],
   "author": "confused-Techie",
