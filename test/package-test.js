@@ -1,7 +1,7 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
 
-const Package = require("../lib/package.js");
+const Package = require("../src/package.js");
 
 describe("simple test", () => {
   it("does things", () => {
