@@ -1,26 +1,30 @@
-const InvalidPropertyError = require("../errors/invalid_property_error.js");
+const Key = require("./base-key.js");
 
-function keywords(value) {
-  if (typeof value === "undefined") {
-    // Get Property
-    if (Array.isArray(this.normalizedPack.keywords)) {
-      return this.normalizedPack.keywords;
+class Keywords extends Key {
+  static fieldName = "keywords";
+
+  validate(service) {
+    let valid;
+
+    switch(service) {
+      case "npm":
+      case "commonjs":
+      default:
+        if (Array.isArray(this.value)) {
+          valid = true;
+          for (let i = 0; i < this.value.length; i++) {
+            if (typeof this.value[i] !== "string") {
+              valid = false;
+            }
+          }
+        } else {
+          valid = false;
+        }
+        break;
     }
 
-    if (Array.isArray(this.rawPack.keywords)) {
-      return this.keywords(this.rawPack.keywords);
-    }
-
-    return undefined;
+    return valid;
   }
-  // Set Property
-  if (Array.isArray(value)) {
-    this.normalizedPack.keywords = value;
-    return;
-  }
-
-  throw new Error(`Keywords is not a valid type: ${typeof value}`);
-  return;
 }
 
-module.exports = keywords;
+module.exports = Keywords;

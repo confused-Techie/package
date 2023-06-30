@@ -1,26 +1,26 @@
-const InvalidPropertyError = require("../errors/invalid_property_error.js");
+const semver = require("semver");
+const Key = require("./base-key.js");
 
-function version(value) {
-  if (typeof value === "undefined") {
-    // Get property
-    if (this.validate("version", this.normalizedPack.version)) {
-      return this.normalizedPack.version;
+class Version extends Key {
+  static fieldName = "version";
+
+  validate(service) {
+    let valid;
+
+    switch(service) {
+      case "commonjs":
+      case "npm":
+      default:
+        if (typeof this.value === "string" && semver.valid(this.value) !== null) {
+          valid = true;
+        } else {
+          valid = false;
+        }
+        break;
     }
 
-    if (this.validate("version", this.rawPack.version)) {
-      return this.version(this.rawPack.version);
-    }
-
-    return undefined;
+    return valid;
   }
-  // Set property
-  if (this.validate("version", value)) {
-    this.normalizedPack.version = value;
-    return;
-  }
-
-  throw new InvalidPropertyError(`Version is not a valid type: ${typeof value}`);
-  return;
 }
 
-module.exports = version;
+module.exports = Version;

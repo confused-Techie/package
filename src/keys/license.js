@@ -1,134 +1,92 @@
+/**
+ * The License Key Class supports two forms of the `license` key:
+ *    - standard: A standard string
+ *    - object: A deprecated object style, with type and url
+ * The beauty here, is that the Package class can have it's declared preference,
+ * which controls how the data is returned to the user when requested,
+ * converting either style into the other, depending on what the declared preference
+ * is. Meanwhile, when setting the value, it will be converted into whatever the
+ * existing style is.
+ */
 
-function license(value) {
-  if (typeof value === "undefined") {
-    // Get Property
-    if (typeof this.normalizedPack.license !== "undefined") {
-      return this.normalizedPack.license;
+class License {
+  static fieldName = "license";
+
+  constructor(val, config) {
+    this.value = val;
+    this.config = config;
+
+    this.style;
+
+    if (typeof val === "object") {
+      this.style = "licenseObject";
+    } else if (typeof val === "string") {
+      this.style = "standard";
     }
 
-    if (typeof this.rawPack.license !== "undefined") {
-      return this.license(this.rawPack.license);
-    }
-
-    return undefined;
-  }
-  // Set Property
-
-  if (Array.isArray(value)) {
-    if (licenseArrayValid(value)) {
-      if (this.mode.strict) {
-        // We need to ensure type
-        switch(this.mode.license) {
-          case "string": {
-            // we need to convert from array of objects to string
-            if (this.validate("license", value[0].type)) {
-              this.normalizedPack.license = value[0].type;
-              return this.normalizedPack.license;
-            }
-            throw new Error("Unable to convert from Array License to String License");
-            return;
-          }
-          case "object": {
-            // we need to convert from array to object
-            if (this.validate("license.type", value[0].type) && this.validate("license.url", value[0].url)) {
-              this.normalizedPack.license = {
-                type: value[0].type,
-                url: value[0].url
-              };
-              return this.normalizedPack.license;
-            }
-            // We can't set our type as expected.
-            throw new Error("Unable to convert from Array License to Object License");
-            return;
-          }
-          case "array": // No need to convert we already have array
-          case "mirror": // Mirror source type
-          default: {
-            for (let i = 0; i < value.length; i++) {
-              if (!this.validate("license.type", value[i].type || !this.validate("license.url", value[i].url))) {
-                throw new Error("Array License contains invalid values");
-                return;
-              }
-            }
-            // We have looped the entire array and no failures. Set value
-            this.normalizedPack.license = value;
-            return this.normalizedPack.license;
-          }
-        }
-      }
-    }
-    throw new Error("Array License is not valid!");
-    return;
   }
 
-  if (typeof value === "object") {
-    if (licenseObjValid(value)) {
-      if (this.mode.strict) {
-        // We need to ensure type
-        switch(this.mode.license) {
-          case "string": {
-            // we need to convert from Object to String
-          }
-          case "array": {
-            // We need to convert from Object to Array
-          }
-          case "object": // No need to convert we already have object
-          case "mirror": // Mirror intends to mirror whatever the source type is.
-          default: {
-            if (this.validate("license.type", value.type) && this.validate("license.url")) {
-              this.normalizedPack.license = {
-                type: value.type,
-                url: value.url
-              };
-              return this.normalizedPack.license;
-            }
-          }
-        }
+  get field() {
+    if (this.config.licenseStyle === "standard") {
+      if (this.style === "standard") {
+        return this.value;
+      } else if (this.style === "object") {
+        return this.value.type;
       }
-
-      // We don't care about type, but have a valid license object.
-      if (this.validate("license.type", value.type) && this.validate("license.url")) {
-        this.normalizedPack.license = {
-          type: value.type,
-          url: value.url
+    } else if (this.config.licenseStyle === "object") {
+      if (this.style === "object") {
+        return this.value;
+      } else if (this.style === "standard") {
+        return {
+          type: this.value,
+          url: `https://opensource.org/license/${this.value}/`
         };
+        // TODO have a better method of finding the license URL
       }
     }
-    // invalid object passed.
-    throw new Error("Object License is not valid!");
-    return;
   }
 
-  if (this.validate("license", value)) {
-    this.normalizedPack.license = value;
-    return;
-  }
+  set field(val) {
+    if (this.style === "standard") {
+      if (typeof val === "string") {
+        this.value = val;
+      } else if (typeof val === "object") {
+        this.value = val.type;
+      }
+    } else if (this.style === "object") {
+      if (typeof val === "object") {
+        this.value = val;
+      } else if (typeof val === "string") {
+        this.value = {
+          type: val,
+          url: `https://opensource.org/license/${val}/`
+        };
 
-  throw new Error(`License is not valid: ${value}`);
-  return;
-}
-
-function licenseObjValid(license) {
-  if (typeof license === "object") {
-    if (typeof license.type === "string" && typeof license.url === "string") {
-      return true;
-    }
-    return false;
-  }
-  return false;
-}
-
-function licenseArrayValid(license) {
-  if (Array.isArray(license)) {
-    for (let i = 0; i < license.length; i++) {
-      let tmp = licenseObjValid(license[i]);
-      if (!tmp) {
-        return tmp;
       }
     }
-    return true;
   }
-  return false;
+
+  validate(service) {
+    let valid;
+
+    switch(service) {
+      case "commonjs":
+        // commonjs does not support the license key at all
+        valid = false;
+        break;
+      case "npm":
+      default:
+        if (this.style === "standard") {
+          valid = typeof this.value === "string";
+        } else if (this.style === "object") {
+          valid = typeof this.value === "object";
+        }
+        break;
+    }
+
+    return valid;
+  }
+
 }
 
-module.exports = license;
+module.exports = License;

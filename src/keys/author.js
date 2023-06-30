@@ -1,9 +1,23 @@
+const Key = require("./base-key.js");
 
-function author(value) {
-  if (typeof value === "undefined") {
-    // Get Property
+class Author extends Key {
+
+  static fieldName = "author";
+
+  validate(service) {
+    let valid;
+
+    switch(service) {
+      case "npm":
+      case "commonjs":
+      default:
+        valid = typeof this.value === "string";
+        break;
+    }
+
+    return valid;
   }
-  // Set Property
+
 }
 
-module.exports = author;
+module.exports = Author;

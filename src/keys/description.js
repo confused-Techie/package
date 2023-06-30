@@ -1,27 +1,21 @@
-// Testing function to use as specific key handler.
-const InvalidPropertyError = require("../errors/invalid_property_error.js");
+const Key = require("./base-key.js");
 
-function description(value) {
-  if (typeof value === "undefined") {
-    // Get Property
-    if (this.validate("description", this.normalizedPack.description)) {
-      return this.normalizedPack.description;
+class Description extends Key {
+  static fieldName = "description";
+
+  validate(service) {
+    let valid;
+
+    switch(service) {
+      case "npm":
+      case "commonjs":
+      default:
+        valid = typeof this.value === "string";
+        break;
     }
 
-    if (this.validate("description", this.rawPack.description)) {
-      return this.description(this.rawPack.description);
-    }
-
-    return undefined;
+    return valid;
   }
-  // Set Property
-  if (this.validate("description", value)) {
-    this.normalizedPack.description = value;
-    return;
-  }
-
-  throw new InvalidPropertyError(`Description is not a valid type: ${typeof value}`);
-  return;
 }
 
-module.exports = description;
+module.exports = Description;
