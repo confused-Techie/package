@@ -3,7 +3,9 @@ const keyClasses = [
   require("./keys/description.js"),
   require("./keys/license.js"),
   require("./keys/name.js"),
-  require("./keys/version.js")
+  require("./keys/version.js"),
+  require("./keys/bugs.js"),
+  require("./keys/homepage.js")
 ];
 
 // A simple reimaging of what this repo could look like.

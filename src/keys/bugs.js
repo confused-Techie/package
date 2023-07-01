@@ -1,16 +1,5 @@
-/**
- * The License Key Class supports two forms of the `license` key:
- *    - standard: A standard string
- *    - object: A deprecated object style, with type and url
- * The beauty here, is that the Package class can have it's declared preference,
- * which controls how the data is returned to the user when requested,
- * converting either style into the other, depending on what the declared preference
- * is. Meanwhile, when setting the value, it will be converted into whatever the
- * existing style is.
- */
-
-class License {
-  static fieldName = "license";
+class Bugs {
+  static fieldName = "bugs";
 
   constructor(val, config) {
     this.value = val;
@@ -21,27 +10,25 @@ class License {
     if (typeof val === "object") {
       this.style = "object";
     } else if (typeof val === "string") {
-      this.style = "standard";
+      this.style = "string";
     }
-
   }
 
   get field() {
-    if (this.config.licenseStyle === "standard") {
+    if (this.config.bugStyle === "standard") {
       if (this.style === "standard") {
         return this.value;
       } else if (this.style === "object") {
-        return this.value.type;
+        return this.value.url;
       }
-    } else if (this.config.licenseStyle === "object") {
+    } else if (this.config.bugStyle === "object") {
       if (this.style === "object") {
         return this.value;
-      } else if (this.style === "standard") {
+      } else if (this.style === "string") {
         return {
-          type: this.value,
-          url: `https://opensource.org/license/${this.value}/`
+          url: this.value,
+          email: ""
         };
-        // TODO have a better method of finding the license URL
       }
     }
   }
@@ -51,17 +38,16 @@ class License {
       if (typeof val === "string") {
         this.value = val;
       } else if (typeof val === "object") {
-        this.value = val.type;
+        this.value = val.url;
       }
     } else if (this.style === "object") {
       if (typeof val === "object") {
         this.value = val;
       } else if (typeof val === "string") {
         this.value = {
-          type: val,
-          url: `https://opensource.org/license/${val}/`
+          url: val,
+          email: ""
         };
-
       }
     }
   }
@@ -71,8 +57,12 @@ class License {
 
     switch(service) {
       case "commonjs":
-        // commonjs does not support the license key at all
-        valid = false;
+        // commonjs only accepts a string value
+        if (this.style === "object") {
+          valid = false;
+        } else {
+          valid = typeof this.value === "string";
+        }
         break;
       case "npm":
       default:
@@ -86,7 +76,6 @@ class License {
 
     return valid;
   }
-
 }
 
-module.exports = License;
+module.exports = Bugs;
