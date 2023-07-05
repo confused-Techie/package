@@ -5,8 +5,12 @@ const keyClasses = [
   require("./keys/name.js"),
   require("./keys/version.js"),
   require("./keys/bugs.js"),
-  require("./keys/homepage.js")
+  require("./keys/homepage.js"),
+  require("./keys/main.js"),
+  require("./keys/browser.js"),
 ];
+
+const NullKey = require("./keys/null-key.js");
 
 // A simple reimaging of what this repo could look like.
 // With a new found focus on simplicity.
@@ -94,6 +98,20 @@ class Package {
       service: this.service,
       licenseStyle: "standard"
     };
+  }
+
+  /**
+   * @function getKey
+   * @memberof Package
+   * @desc Allows the retrevial of any given key object, to avoid the need of manually
+   * checking for it's existance or validity.
+   */
+  getKey(keyName) {
+    if (this.knownFields.includes(keyName)) {
+      return this[keyName];
+    } else {
+      return new NullKey();
+    }
   }
 
 }
