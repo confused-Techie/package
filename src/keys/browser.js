@@ -10,7 +10,7 @@ class Browser extends Key {
       case "commonjs":
         // TODO
       case "npm":
-        valid = typeof this.value === "string";
+        valid = this.isString();
         break;
     }
 

@@ -10,16 +10,7 @@ class Keywords extends Key {
       case "npm":
       case "commonjs":
       default:
-        if (Array.isArray(this.value)) {
-          valid = true;
-          for (let i = 0; i < this.value.length; i++) {
-            if (typeof this.value[i] !== "string") {
-              valid = false;
-            }
-          }
-        } else {
-          valid = false;
-        }
+        valid = this.isStringArray();
         break;
     }
 

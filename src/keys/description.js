@@ -10,7 +10,7 @@ class Description extends Key {
       case "npm":
       case "commonjs":
       default:
-        valid = typeof this.value === "string";
+        valid = this.isString();
         break;
     }
 

@@ -8,6 +8,8 @@ const keyClasses = [
   require("./keys/homepage.js"),
   require("./keys/main.js"),
   require("./keys/browser.js"),
+  require("./keys/private.js"),
+  require("./keys/os.js")
 ];
 
 const NullKey = require("./keys/null-key.js");

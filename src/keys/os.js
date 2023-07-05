@@ -1,21 +1,20 @@
 const Key = require("./base-key.js");
 
-class Homepage extends Key {
-  static fieldName = "homepage";
+class os extends Key {
+  static fieldName = "os";
 
   validate(service) {
     let valid;
 
     switch(service) {
-      case "npm":
       case "commonjs":
+        // todo
+      case "npm":
       default:
-        valid = this.isString();
-        break;
+        valid = this.isStringArray();
     }
-
     return valid;
   }
 }
 
-module.exports = Homepage;
+module.exports = os;
